@@ -57,6 +57,18 @@ describe("color schemes", () => {
     );
   });
 
+  it("gives C# kinds of type their own attributes, scoped to C# editors", () => {
+    const csharp = ATTRIBUTES.filter((a) => a.language === "C#");
+    expect(csharp.filter((a) => a.id === "csharp.className")).toHaveLength(1);
+    expect(csharp.find((a) => a.id === "csharp.className")?.fg).toBe("--syn-csharp-class");
+    expect(csharp.find((a) => a.id === "csharp.interfaceName")?.path).toEqual(["C#"]);
+    expect(schemeTokens("dark").get("--syn-csharp-interface")).toBe("#8fa8ff");
+    expect(schemeTokens("light").get("--syn-csharp-interface")).toBe("#2c4fd6");
+    const css = schemeCss("dark", { dark: { "csharp.structName": { foreground: "#224466" } } });
+    expect(css).toContain('.cm-editor[data-language="C#"]');
+    expect(css).toContain("--syn-csharp-struct: #224466 !important");
+  });
+
   it("offers a Go scheme page and scopes its overrides to Go editors", () => {
     expect(ATTRIBUTES.find((a) => a.id === "go.constant")?.path).toEqual(["Go"]);
     const css = schemeCss("dark", { dark: { "go.constant": { foreground: "#224466" } } });

@@ -163,6 +163,13 @@ html {
   /* PhpStorm colours PHP variables and function calls on their own */
   --syn-php-variable: var(--syn-property);
   --syn-php-function-call: var(--syn-function);
+  /* Rider-style C# kinds of type (csharp-ls classifications) */
+  --syn-csharp-class: #c191ff;
+  --syn-csharp-interface: #8fa8ff;
+  --syn-csharp-struct: #e1bfff;
+  --syn-csharp-enum: #6fc3a8;
+  --syn-csharp-type-parameter: #16baac;
+  --syn-csharp-event: #ed94c0;
   --syn-builtin: #8888c6;
   --syn-self: #94558d;
   --syn-keyword-arg: #aa4926;
@@ -623,6 +630,12 @@ html {
   --syn-python-docstring-keyword: var(--syn-doc-comment-tag-value);
   --syn-php-variable: var(--syn-property);
   --syn-php-function-call: var(--syn-function);
+  --syn-csharp-class: #7c3aad;
+  --syn-csharp-interface: #2c4fd6;
+  --syn-csharp-struct: #a240b3;
+  --syn-csharp-enum: #1f7f5c;
+  --syn-csharp-type-parameter: #20999d;
+  --syn-csharp-event: #b5356b;
   --syn-builtin: #000080;
   --syn-self: #94558d;
   --syn-keyword-arg: #660099;
@@ -925,6 +938,12 @@ html {
   --syn-python-docstring-keyword: var(--syn-doc-comment-tag-value);
   --syn-php-variable: var(--syn-property);
   --syn-php-function-call: var(--syn-function);
+  --syn-csharp-class: #d6b0ff;
+  --syn-csharp-interface: #a9bcff;
+  --syn-csharp-struct: #f0d4ff;
+  --syn-csharp-enum: #8fe0c4;
+  --syn-csharp-type-parameter: #3fd8c8;
+  --syn-csharp-event: #ffb0d6;
   --syn-builtin: #b0b0f0;
   --syn-self: #d08ac8;
   --syn-keyword-arg: #e0805c;
@@ -1316,6 +1335,12 @@ html {
   --syn-python-docstring-keyword: var(--syn-doc-comment-tag-value);
   --syn-php-variable: var(--syn-property);
   --syn-php-function-call: var(--syn-function);
+  --syn-csharp-class: var(--syn-type);
+  --syn-csharp-interface: var(--syn-type);
+  --syn-csharp-struct: var(--syn-type);
+  --syn-csharp-enum: var(--syn-type);
+  --syn-csharp-type-parameter: var(--syn-type);
+  --syn-csharp-event: var(--syn-property);
   --syn-builtin: var(--palette-cyan);
   --syn-self: var(--palette-red);
   --syn-keyword-arg: var(--palette-red);

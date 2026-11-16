@@ -494,6 +494,13 @@ export const lspTheme = EditorView.theme({
   ".cm-sem-python-constant": semanticStyle("python-constant", "constant"),
   ".cm-sem-python-property": semanticStyle("python-property", "property"),
   ".cm-sem-python-type-parameter": semanticStyle("python-type-parameter", "type"),
+  // C# (csharp-ls): Rider-style kinds of type and events; after `.cm-sem-type` so they win.
+  ".cm-sem-csharp-class": semanticStyle("csharp-class", "type"),
+  ".cm-sem-csharp-interface": semanticStyle("csharp-interface", "type"),
+  ".cm-sem-csharp-struct": semanticStyle("csharp-struct", "type"),
+  ".cm-sem-csharp-enum": semanticStyle("csharp-enum", "type"),
+  ".cm-sem-csharp-type-parameter": semanticStyle("csharp-type-parameter", "type"),
+  ".cm-sem-csharp-event": semanticStyle("csharp-event", "property"),
   // Deprecation wins over role effects, including static fields.
   ".cm-content .cm-sem-deprecated, .cm-content .cm-sem-deprecated *": { textDecoration: "line-through" },
   // Semantic highlighting: after the base classes so a parameter's colour gives way, and over the

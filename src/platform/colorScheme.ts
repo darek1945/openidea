@@ -381,16 +381,30 @@ const SCHEME_LANGUAGES = { csharp: "C#", go: "Go", java: "Java", kotlin: "Kotlin
 /** Languages that scope their overrides into a per-language editor block; Python ships its own attributes. */
 const SCHEME_LANGUAGE_SCOPES = { ...SCHEME_LANGUAGES, python: "Python" } as const;
 
+/** C# kinds csharp-ls tells apart (Rider's Classes page); `className` keeps its id but gets its own token. */
+const CSHARP_ATTRIBUTES: readonly AttributeDef[] = [
+  ["className", "Classes › Class name", "csharp-class"],
+  ["interfaceName", "Classes › Interface name", "csharp-interface"],
+  ["structName", "Classes › Struct name", "csharp-struct"],
+  ["enumName", "Classes › Enum name", "csharp-enum"],
+  ["typeParameter", "Classes › Type parameter", "csharp-type-parameter"],
+  ["event", "Identifiers › Event", "csharp-event"],
+].map(([id, name, token]) => ({ ...syn(`csharp.${id}`, name!, ["C#"], token!), language: "C#" }));
+const CSHARP_IDS = new Set(CSHARP_ATTRIBUTES.map((a) => a.id));
+
 export const ATTRIBUTES: readonly AttributeDef[] = [
   ...BASE_ATTRIBUTES,
   ...Object.entries(SCHEME_LANGUAGES).flatMap(([id, language]) =>
-    BASE_ATTRIBUTES.filter((a) => a.path[0] === LD && !/^(semantic|bracket)\d$/.test(a.id)).map((a) => ({
-      ...a,
-      id: `${id}.${a.id}`,
-      path: [language, ...a.path.slice(1)],
-      language,
-    })),
+    BASE_ATTRIBUTES.filter((a) => a.path[0] === LD && !/^(semantic|bracket)\d$/.test(a.id))
+      .map((a) => ({
+        ...a,
+        id: `${id}.${a.id}`,
+        path: [language, ...a.path.slice(1)],
+        language,
+      }))
+      .filter((a) => !CSHARP_IDS.has(a.id)),
   ),
+  ...CSHARP_ATTRIBUTES,
   ...[
     ["brackets", "Brackets", "bracket"],
     ["separator", "Comma and semicolon", "separator"],
