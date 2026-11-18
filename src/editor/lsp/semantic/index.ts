@@ -19,7 +19,7 @@ import { Decoration, EditorView, ViewPlugin, type DecorationSet, type ViewUpdate
 import { commands, type SemanticTokens } from "@/platform/ipc";
 import { editorPrefs } from "@/platform/editorSettings";
 import { debounce, docOf, isUnavailable, lspRequest } from "../lsp";
-import { featureBackoff, onLspRefresh } from "../availability";
+import { featureBackoff, onLspRefresh, onServerSettled } from "../availability";
 import { languageSemantics, type SemanticRange } from "./languages";
 
 // Language folders register their semantics by importing this module; lookups
@@ -222,17 +222,32 @@ const semanticPlugin = ViewPlugin.fromClass(
     /** Last answer, re-decorated without a request when Semantic highlighting is toggled. */
     private last: { doc: Text; tokens: SemanticTokens | null } | null = null;
     private destroyed = false;
+    /** Re-asks after an empty answer: a server that is still loading the project reports no tokens. */
+    private emptyRetries = 0;
+    private retryTimer: ReturnType<typeof setTimeout> | undefined;
     private tree: Tree | null = null;
     constructor(private view: EditorView) {
       queueMicrotask(() => {
         if (!this.destroyed) this.decorate(this.view.state.doc, null);
       });
       this.refresh();
-      this.offReady = onLspRefresh("semanticTokens", () => this.refresh());
+      const kick = () => {
+        this.emptyRetries = 0;
+        this.refresh();
+      };
+      const offRefresh = onLspRefresh("semanticTokens", kick);
+      // An editor restored at launch mounts while its server starts or loads the project;
+      // `onLspRefresh` only sees a start it witnessed, so also follow the server settling.
+      const offSettled = onServerSettled(kick);
+      this.offReady = () => {
+        offRefresh();
+        offSettled();
+      };
     }
     update(u: ViewUpdate) {
       const tree = syntaxTree(u.state);
       if (u.docChanged || tree !== this.tree) {
+        if (u.docChanged) this.emptyRetries = 0;
         this.tree = tree;
         this.refresh();
         const doc = u.state.doc;
@@ -309,18 +324,36 @@ const semanticPlugin = ViewPlugin.fromClass(
     async run() {
       const view = this.view;
       const doc = docOf(view);
-      if (!doc || semanticBackoff.active(doc.doc) || !view.dom.isConnected) return;
+      if (!doc || !view.dom.isConnected) return;
+      if (semanticBackoff.active(doc.doc)) return this.retryLater(view.state.doc);
       const state = view.state;
       try {
         const tokens = await lspRequest(() => commands.lspSemanticTokens(doc.doc));
         if (view.state.doc !== state.doc) return this.refresh();
         this.decorate(state.doc, tokens);
+        if (tokens && tokens.data.length) this.emptyRetries = 0;
+        else this.retryLater(state.doc);
       } catch (e) {
         if (isUnavailable(e)) semanticBackoff.mark(doc.doc);
+        this.retryLater(state.doc);
       }
+    }
+    /**
+     * A restored editor can ask before its server has loaded the project; the answer is then
+     * empty (or an error) with no later event to announce that tokens are available.
+     */
+    private retryLater(doc: Text) {
+      if (this.destroyed || !doc.length || this.emptyRetries >= 5) return;
+      const delay = Math.min(3000 * 2 ** this.emptyRetries, 30_000);
+      this.emptyRetries++;
+      clearTimeout(this.retryTimer);
+      this.retryTimer = setTimeout(() => {
+        if (!this.destroyed && this.view.dom.isConnected) this.refresh();
+      }, delay);
     }
     destroy() {
       this.destroyed = true;
+      clearTimeout(this.retryTimer);
       this.refresh.cancel();
       this.offReady();
     }

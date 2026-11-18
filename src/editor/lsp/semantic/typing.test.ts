@@ -15,6 +15,7 @@ vi.mock("../lsp", async (importOriginal) => ({
 vi.mock("../availability", () => ({
   featureBackoff: () => ({ active: () => false, mark: () => {} }),
   onLspRefresh: () => () => {},
+  onServerSettled: () => () => {},
 }));
 
 afterEach(() => {
